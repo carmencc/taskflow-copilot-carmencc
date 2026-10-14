@@ -183,6 +183,48 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void sinResponsable_filtraYOrdenaPorFechaConNullAlFinal() {
+            LocalDate hoy = LocalDate.now();
+            try {
+                Task tenDays = new Task(1L, "Diez dias", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, null, hoy.plusDays(10));
+                Task withAssignee = new Task(2L, "Con responsable", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 5L, hoy.plusDays(5));
+                Task noDate = new Task(3L, "Sin fecha", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null, null);
+                Task twoDays = new Task(4L, "Dos dias", "d", TaskStatus.TODO, Priority.MED, PROYECTO, null, hoy.plusDays(2));
+
+                // Repo devuelve en ESTE orden: tenDays, withAssignee, noDate, twoDays
+                when(repository.findAll()).thenReturn(List.of(tenDays, withAssignee, noDate, twoDays));
+
+                List<Task> res = service.sinResponsable();
+
+                // Deben venir SOLO los sin responsable, ordenados: twoDays, tenDays, noDate
+                List<Long> ids = res.stream().map(Task::getId).toList();
+                assertEquals(List.of(4L, 1L, 3L), ids);
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @Test
+        void sinResponsable_soloConResponsable_devuelveListaVacia() {
+            try {
+                Task t1 = new Task(10L, "T1", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L, null);
+                Task t2 = new Task(11L, "T2", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 2L, null);
+                when(repository.findAll()).thenReturn(List.of(t1, t2));
+
+                List<Task> res = service.sinResponsable();
+
+                assertEquals(0, res.size());
+            } catch (TaskValidationException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
     /** Fabrica una Task de rehidratación REAL (dato, no mock). assigneeId null = sin responsable. */
     private Task tarea(Long id, String title, Long assigneeId) {
         try {
