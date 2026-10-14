@@ -1,0 +1,28 @@
+ specs/overdue.md                                   | 42 ++++++++++++++++++++++
+ .../com/taskflow/controller/TaskController.java    |  9 +++++
+ .../java/com/taskflow/service/TaskService.java     |  8 +++++
+ .../com/taskflow/slice/TaskControllerTest.java     | 19 ++++++++++
+ .../java/com/taskflow/unit/TaskServiceTest.java    | 28 +++++++++++++++
+ 5 files changed, 106 insertions(+)
+19	0	src/test/java/com/taskflow/slice/TaskControllerTest.java
+28	0	src/test/java/com/taskflow/unit/TaskServiceTest.java
+
++    /** GET /tasks/overdue — tareas vencidas de todos los proyectos. */
++    /** Lista las tareas vencidas según la regla de dominio Task.estaVencida(). Orden por dueDate asc. */
+
+MUTANTE: quitado .sorted(TaskOrders.POR_FECHA) de vencidas()
+
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+RESTAURADO: TaskService.java quedó exactamente como estaba.
+
+
++            description = "Lista global de tareas vencidas (Task.estaVencida()). Orden por dueDate asc.")
++    /** Lista las tareas vencidas según la regla de dominio Task.estaVencida(). Orden por dueDate asc. */
++                .filter(Task::estaVencida)
++                .sorted(TaskOrders.POR_FECHA)
+
+
+[INFO] Tests run: 69, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
