@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,6 +87,41 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].title").value("Primera"));
+    }
+
+    @Test
+    void getOverdueTasks_retorna200YListaOrdenada() throws Exception {
+        LocalDate hoy = LocalDate.now();
+        try {
+            Task older = new Task(7L, "Corregir bug de fechas", "desc", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L, hoy.minusDays(3));
+            Task newer = new Task(8L, "Otra vencida", "desc", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 3L, hoy.minusDays(1));
+            when(taskService.vencidas()).thenReturn(List.of(older, newer));
+
+            mockMvc.perform(get("/tasks/overdue"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(2))
+                    .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"))
+                    .andExpect(jsonPath("$[1].title").value("Otra vencida"));
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Test
+    void getUnassignedTasks_retorna200YJsonConIdYAssigneeNull() throws Exception {
+        LocalDate hoy = LocalDate.now();
+        try {
+            Task unassigned = new Task(4L, "Sin responsable", "desc", TaskStatus.TODO, Priority.MED, 1L, null, hoy.plusDays(7));
+            when(taskService.sinResponsable()).thenReturn(List.of(unassigned));
+
+            mockMvc.perform(get("/tasks/unassigned"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].id").value(4))
+                    .andExpect(jsonPath("$[0].assigneeId").value(org.hamcrest.Matchers.nullValue()));
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test
