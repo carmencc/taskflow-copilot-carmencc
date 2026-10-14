@@ -212,8 +212,8 @@ class TaskServiceTest {
         @Test
         void sinResponsable_soloConResponsable_devuelveListaVacia() {
             try {
-                Task t1 = new Task(10L, "T1", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L, null);
-                Task t2 = new Task(11L, "T2", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 2L, null);
+                Task t1 = new Task(10L, "T01", "d", TaskStatus.TODO, Priority.MED, PROYECTO, 1L, null);
+                Task t2 = new Task(11L, "T02", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 2L, null);
                 when(repository.findAll()).thenReturn(List.of(t1, t2));
 
                 List<Task> res = service.sinResponsable();
