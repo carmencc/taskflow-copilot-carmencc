@@ -165,18 +165,25 @@ class TaskServiceTest {
         void vencidas_devuelveSoloVencidasEnOrden() {
             LocalDate hoy = LocalDate.now();
             try {
-                Task older = new Task(10L, "Antigua", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L, hoy.minusDays(3));
-                Task newer = new Task(11L, "Reciente", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 2L, hoy.minusDays(1));
-                Task donePast = new Task(12L, "Hecha", "d", TaskStatus.DONE, Priority.MED, PROYECTO, 3L, hoy.minusDays(2));
-                Task noDate = new Task(13L, "Sin fecha", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 4L, null);
+                // El repositorio devuelve, EN ESTE ORDEN:
+                // 1) vencida hace 1 día
+                // 2) con fecha en 3 días (futura)
+                // 3) DONE vencida hace 10 días (no debe contarse)
+                // 4) sin dueDate
+                // 5) vencida hace 5 días
+                Task v1dia = new Task(21L, "Venc1", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 1L, hoy.minusDays(1));
+                Task fut3 = new Task(22L, "Fut03", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 2L, hoy.plusDays(3));
+                Task done10 = new Task(23L, "Done10", "d", TaskStatus.DONE, Priority.MED, PROYECTO, 3L, hoy.minusDays(10));
+                Task noDue = new Task(24L, "NoDue", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 4L, null);
+                Task v5dias = new Task(25L, "Venc5", "d", TaskStatus.IN_PROGRESS, Priority.MED, PROYECTO, 5L, hoy.minusDays(5));
 
-                when(repository.findAll()).thenReturn(List.of(older, donePast, noDate, newer));
+                when(repository.findAll()).thenReturn(List.of(v1dia, fut3, done10, noDue, v5dias));
 
                 List<Task> res = service.vencidas();
 
-                assertEquals(2, res.size());
-                assertEquals(older, res.get(0));
-                assertEquals(newer, res.get(1));
+                // Solo las dos vencidas: la de hace 5 días (más antigua) primero, luego la de hace 1 día.
+                List<Long> ids = res.stream().map(Task::getId).toList();
+                assertEquals(List.of(25L, 21L), ids);
             } catch (TaskValidationException e) {
                 throw new IllegalStateException(e);
             }
