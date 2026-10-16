@@ -72,22 +72,20 @@ public class TaskController {
         return tareas.stream().map(TaskMapper::aResponse).toList();
     }
 
-    /** GET /tasks/overdue — tareas vencidas de todos los proyectos. */
+    /** GET /tasks/overdue — tareas vencidas de todos los proyectos, la más vencida primero. */
     @Operation(summary = "Lista tareas vencidas",
-            description = "Lista global de tareas vencidas (Task.estaVencida()). Orden por dueDate asc.")
+            description = "Tareas con fecha pasada que no están DONE (Task.estaVencida()), por dueDate ascendente.")
     @GetMapping("/tasks/overdue")
     public List<TaskResponse> getOverdueTasks() {
-        List<Task> vencidas = taskService.vencidas();
-        return vencidas.stream().map(TaskMapper::aResponse).toList();
+        return taskService.vencidas().stream().map(TaskMapper::aResponse).toList();
     }
 
-    /** GET /tasks/unassigned — tareas sin responsable de todos los proyectos. */
+    /** GET /tasks/unassigned — tareas sin responsable, por dueDate ascendente y sin fecha al final. */
     @Operation(summary = "Lista tareas sin responsable",
-            description = "Lista global de tareas sin responsable (ReportService.SIN_ASIGNAR). Orden por dueDate asc.")
+            description = "Tareas con assigneeId null en cualquier estado, por dueDate ascendente; las sin fecha al final.")
     @GetMapping("/tasks/unassigned")
     public List<TaskResponse> getUnassignedTasks() {
-        List<Task> sin = taskService.sinResponsable();
-        return sin.stream().map(TaskMapper::aResponse).toList();
+        return taskService.sinResponsable().stream().map(TaskMapper::aResponse).toList();
     }
 
     /** GET /tasks/{id} — 200 con TaskResponse, o 404 uniforme (orElseThrow -> advice). */

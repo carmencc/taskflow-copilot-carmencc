@@ -21,11 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -89,39 +90,32 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Primera"));
     }
 
-    @Test
-    void getOverdueTasks_retorna200YListaConIdYTitulo() throws Exception {
-        LocalDate hoy = LocalDate.now();
-        try {
-            // Mock devuelve una sola tarea; el test no verifica orden, solo estatus y campos básicos.
-            Task sola = new Task(77L, "Prueba", "desc", TaskStatus.IN_PROGRESS, Priority.MED, 1L, 2L, hoy.minusDays(2));
-            when(taskService.vencidas()).thenReturn(List.of(sola));
+    // ==================== Listados de vencidas y sin responsable ====================
+    // La lista la fija el mock: aquí se prueba que la RUTA llega al método nuevo (200, no el 400 de
+    // /tasks/{id}) y que el JSON trae los campos del TaskResponse. El orden se prueba en TaskServiceTest.
 
-            mockMvc.perform(get("/tasks/overdue"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].id").value(77))
-                    .andExpect(jsonPath("$[0].title").value("Prueba"));
-        } catch (TaskValidationException e) {
-            throw new IllegalStateException(e);
-        }
+    @Test
+    void getOverdue_retorna200ConLasTareasDelServicio() throws Exception {
+        when(taskService.vencidas()).thenReturn(List.of(
+                tareaConFecha(7L, "Corregir bug de fechas", 2L, LocalDate.now().minusDays(1))));
+
+        mockMvc.perform(get("/tasks/overdue"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(7))
+                .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"));
     }
 
     @Test
-    void getUnassignedTasks_retorna200YJsonConIdYAssigneeNull() throws Exception {
-        LocalDate hoy = LocalDate.now();
-        try {
-            Task unassigned = new Task(4L, "Sin responsable", "desc", TaskStatus.TODO, Priority.MED, 1L, null, hoy.plusDays(7));
-            when(taskService.sinResponsable()).thenReturn(List.of(unassigned));
+    void getUnassigned_retorna200ConLasTareasDelServicio() throws Exception {
+        when(taskService.sinResponsable()).thenReturn(List.of(
+                tareaConFecha(4L, "Escribir tests MockMvc", null, LocalDate.now().plusDays(7))));
 
-            mockMvc.perform(get("/tasks/unassigned"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].id").value(4))
-                    .andExpect(jsonPath("$[0].assigneeId").value(org.hamcrest.Matchers.nullValue()));
-        } catch (TaskValidationException e) {
-            throw new IllegalStateException(e);
-        }
+        mockMvc.perform(get("/tasks/unassigned"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(4))
+                .andExpect(jsonPath("$[0].assigneeId").value(nullValue()));
     }
 
     @Test
@@ -217,6 +211,14 @@ class TaskControllerTest {
 
     private Task tarea(Long id, String title, TaskStatus status) {
         return tareaCon(id, title, status, 1L);
+    }
+
+    private Task tareaConFecha(Long id, String title, Long assigneeId, LocalDate dueDate) {
+        try {
+            return new Task(id, title, "desc", TaskStatus.TODO, Priority.MED, 1L, assigneeId, dueDate);
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException("dato de prueba inválido", e);
+        }
     }
 
     private Task tareaCon(Long id, String title, TaskStatus status, Long projectId) {

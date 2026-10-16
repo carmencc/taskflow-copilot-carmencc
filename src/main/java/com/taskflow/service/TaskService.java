@@ -111,6 +111,29 @@ public class TaskService {
                 .toList();
     }
 
+    /**
+     * Tareas vencidas de todos los proyectos (GET /tasks/overdue). La regla es la del
+     * dominio, Task.estaVencida(); el orden, TaskOrders.POR_FECHA: la más vencida primero.
+     */
+    public List<Task> vencidas() {
+        return repository.findAll().stream()
+                .filter(Task::estaVencida)
+                .sorted(TaskOrders.POR_FECHA)
+                .toList();
+    }
+
+    /**
+     * Tareas sin responsable de todos los proyectos, en cualquier estado (GET /tasks/unassigned).
+     * La regla es ReportService.SIN_ASIGNAR; el orden, TaskOrders.POR_FECHA: por fecha ascendente y las
+     * que no tienen fecha al final.
+     */
+    public List<Task> sinResponsable() {
+        return repository.findAll().stream()
+                .filter(ReportService.SIN_ASIGNAR)
+                .sorted(TaskOrders.POR_FECHA)
+                .toList();
+    }
+
     /** Busca una tarea por id: delega en el repositorio y deja subir el Optional TAL CUAL. */
     public Optional<Task> buscarPorId(Long id) {
         return repository.findById(id);
@@ -120,22 +143,6 @@ public class TaskService {
     public List<Task> porPrioridad(Priority priority) {
         return repository.findAll().stream()
                 .filter(t -> t.getPriority() == priority)
-                .toList();
-    }
-
-    /** Lista las tareas vencidas según la regla de dominio Task.estaVencida(). Orden por dueDate asc. */
-    public List<Task> vencidas() {
-        return repository.findAll().stream()
-                .filter(Task::estaVencida)
-                .sorted(TaskOrders.POR_FECHA)
-                .toList();
-    }
-
-    /** Lista las tareas sin responsable (assigneeId == null). Orden por dueDate asc con nulls al final. */
-    public List<Task> sinResponsable() {
-        return repository.findAll().stream()
-                .filter(ReportService.SIN_ASIGNAR)
-                .sorted(TaskOrders.POR_FECHA)
                 .toList();
     }
 }
