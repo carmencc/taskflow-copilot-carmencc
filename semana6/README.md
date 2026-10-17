@@ -8,7 +8,6 @@
 
 | | Feature | Especificación |
 |---|---|---|
-
 | [x] | `PATCH /tasks/{id}/assignee` — cambiar el responsable | [`specs/assignee.md`](../specs/assignee.md) |
 
 
@@ -22,25 +21,12 @@
 
 
 | Paso | Qué hice | Evidencia |
-
-| Rama y spec | `git switch -c feature/assignee` y copié la spec a `specs/` | `git log --oneline main..feature/assigne` (antes del merge) |
+|---|---|---|
+| Rama y spec | `git switch -c feature/assignee` y copié la spec a `specs/` | `git log --oneline main..feature/assignee` (antes del merge) |
 | Implementación | `copilot -p "/crear-endpoint-taskflow …"` con `gpt-5-mini` | `semana6/sesion-implementacion.md` (tiene la línea `Skill "crear-endpoint-taskflow" loaded successfully`) |
 | Revisión | agente `revisor` sobre `semana6/proyecto-final.diff` | `semana6/revision.md` (termina con `Veredicto:`) |
 | Tests | `mvn test` en verde | `[OK]    GET /tasks/overdue devuelve solo la tarea 7
-[OK]    GET /tasks/unassigned devuelve las tareas 4 y 6
-[OK]    GET /projects/1/summary
-[OK]    GET /projects/2/summary
-[OK]    GET /projects/3/summary
-[OK]    GET /projects/99/summary responde 404
-[OK]    GET /projects/1/summary sin token responde 401
-[OK]    PATCH /tasks/4/assignee asigna a luis
-[OK]    GET /tasks/4 conserva el responsable nuevo
-[OK]    PATCH /tasks/4/status a DONE ahora responde 200
-[OK]    PATCH /tasks/2/assignee (DONE) responde 422
-[OK]    PATCH /tasks/99/assignee responde 404
-[OK]    PATCH /tasks/6/assignee con {} responde 400 y nombra assigneeId
-[OK]    PATCH /tasks/6/assignee con 0 responde 400
-[OK]    PATCH /tasks/6/assignee sin token responde 401` |
+Tests run: 83, Failures: 0, Errors: 0, Skipped: 0` |
 | Comprobación REST | `verificar.ps1` con `casos-assignee.ps1` | sección 5 de este documento |
 | Code review | Copilot en el PR | la pestaña *Files changed* del PR |
 
@@ -49,10 +35,10 @@
 
 
 | # | Qué hizo mal el agente (archivo) | Quién lo detectó | Cómo quedó corregido |
-|1|Sugeria el cambio de nombre  patchAssignee_proyectoInexistente_devuelve404 por patchAssignee_tareaInexistente_devuelve404|Lo cambie a mano, se encontraba en la clase ReasignarTareaControllerTest.java|void patchAssignee_tareaInexistente_devuelve404() |
+| 1 | El test del 404 se llamaba patchAssignee_proyectoInexistente_devuelve404, pero lo que no existe es la tarea (ReasignarTareaControllerTest.java) | revisor y Copilot review | lo renombré a mano a patchAssignee_tareaInexistente_devuelve404 (fe449f5) |
+| 2 | En TaskController el @RequestBody usa el nombre completo com.taskflow.dto.TaskAssigneeUpdateRequest | revisor (Sugerencia) | no lo apliqué: es de estilo y la spec no lo pide |
 
-
-**Lo que el agente hizo bien a la primera** (una o dos líneas): `<qué archivos o casos no tuviste que tocar>`
+**Lo que el agente hizo bien a la primera** (una o dos líneas): `No se realizó ningún otro cambio a menos que se le indicara`
 
 ## 5. Comprobaciones REST
 
