@@ -77,7 +77,7 @@ class ReasignarTareaControllerTest {
     }
 
     @Test
-    void patchAssignee_proyectoInexistente_devuelve404() throws Exception {
+    void patchAssignee_tareaInexistente_devuelve404() throws Exception {
         when(taskService.buscarPorId(99L)).thenReturn(Optional.empty());
 
         mockMvc.perform(patch("/tasks/99/assignee")

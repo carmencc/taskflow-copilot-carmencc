@@ -67,7 +67,7 @@ index b49a2d2..a557487 100644
       * TaskOrders): vencidas primero, luego prioridad HIGH->LOW, luego fecha ascendente (nulls al final).
 diff --git a/src/test/java/com/taskflow/slice/ReasignarTareaControllerTest.java b/src/test/java/com/taskflow/slice/ReasignarTareaControllerTest.java
 new file mode 100644
-index 0000000..c7f3b09
+index 0000000..46a390c
 --- /dev/null
 +++ b/src/test/java/com/taskflow/slice/ReasignarTareaControllerTest.java
 @@ -0,0 +1,102 @@
@@ -150,7 +150,7 @@ index 0000000..c7f3b09
 +    }
 +
 +    @Test
-+    void patchAssignee_proyectoInexistente_devuelve404() throws Exception {
++    void patchAssignee_tareaInexistente_devuelve404() throws Exception {
 +        when(taskService.buscarPorId(99L)).thenReturn(Optional.empty());
 +
 +        mockMvc.perform(patch("/tasks/99/assignee")
