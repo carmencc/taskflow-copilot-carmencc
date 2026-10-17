@@ -95,6 +95,19 @@ public class TaskService {
     }
 
     /**
+     * Reasigna solo el responsable de la tarea. Recibe la tarea ya encontrada por el controller.
+     * Si la tarea está DONE lanza TaskStateException con el mensaje esperado; en otro caso setea el
+     * assigneeId y guarda la tarea.
+     */
+    public Task reasignar(Task tarea, Long assigneeId) {
+        if (tarea.getStatus() == TaskStatus.DONE) {
+            throw new TaskStateException("No se puede reasignar una tarea terminada.");
+        }
+        tarea.setAssigneeId(assigneeId);
+        return repository.save(tarea);
+    }
+
+    /**
      * Lista todas las tareas ordenadas con la estrategia POR_URGENCIA (reuso LITERAL de la Strategy de
      * TaskOrders): vencidas primero, luego prioridad HIGH->LOW, luego fecha ascendente (nulls al final).
      */
